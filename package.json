@@ -1,0 +1,87 @@
+{
+  "$schema": "https://www.raycast.com/schemas/extension.json",
+  "name": "projectsearch",
+  "title": "ProjectSearch",
+  "description": "Search project in specific folders. And open it with code, finder and terminal",
+  "icon": "command-icon.png",
+  "author": "TobiasYin",
+  "categories": [
+    "Documentation"
+  ],
+  "license": "MIT",
+  "commands": [
+    {
+      "name": "index",
+      "title": "Search Project",
+      "description": "Search project in specific folders. And open it with code, finder and terminal",
+      "mode": "view",
+      "preferences": [
+        {
+          "name": "projectBasePath",
+          "type": "textfield",
+          "required": false,
+          "default": "$HOME/Documents",
+          "title": "Path of the 'Projects Location'",
+          "description": "Path of Projects, default is $HOME/Documents"
+        }
+      ]
+    },
+    {
+      "name": "remote",
+      "title": "Search Remote Project",
+      "description": "Search project in remote (var ssh) specific folders. And open it with code, finder and terminal",
+      "mode": "view",
+      "preferences": [
+        {
+          "name": "remoteURI",
+          "type": "textfield",
+          "required": false,
+          "default": "",
+          "title": "remote uri, like: name@ip",
+          "description": "ssh remote uri, like: name@ip"
+        },
+        {
+          "name": "projectBasePath",
+          "type": "textfield",
+          "required": false,
+          "default": "$HOME/Documents",
+          "title": "Path of the 'Remote Projects Location'",
+          "description": "Path of Remote Projects, default is $HOME/Documents"
+        }
+
+      ]
+    }
+  ],
+  "preferences": [
+    {
+      "name": "level",
+      "type": "textfield",
+      "required": false,
+      "default": "5",
+      "title": "seach level of Path",
+      "description": "seach level of Path"
+    }
+  ],
+  "dependencies": {
+    "@raycast/api": "^1.39.1",
+    "open": "^8.4.0"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^5.0.0",
+    "@typescript-eslint/parser": "^5.0.0",
+    "eslint": "^7.32.0",
+    "eslint-config-prettier": "^8.3.0",
+    "prettier": "^2.5.1",
+    "typescript": "^4.4.3"
+  },
+  "scripts": {
+    "build": "ray build -e dist",
+    "dev": "ray develop",
+    "fix-lint": "ray lint --fix",
+    "lint": "ray lint",
+    "publish": "ray publish"
+  },
+  "version": "1.0.0",
+  "main": "index.js",
+  "keywords": []
+}
