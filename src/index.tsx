@@ -8,23 +8,23 @@ interface Preference {
   level?: number;
 }
 
-const codeAppKey = "com.microsoft.VSCode"
-const terminalPath = "/Applications/iTerm.app"
-const preference: Preference = getPreferenceValues()
+const codeAppKey = "com.microsoft.VSCode";
+const terminalPath = "/Applications/iTerm.app";
+const preference: Preference = getPreferenceValues();
 let run = false;
 const path = environment.assetsPath;
 const script = path + "/lsall.py";
 
 function search(text: string, setElements: any) {
-  console.log(text)
+  console.log(text);
   exec(["python3", script, getProjectPath(), preference.level, 40, text].join(" "), (err, stdout, stderr) => {
     const element = createElements(stdout);
-    setElements(element)
-  })
+    setElements(element);
+  });
 }
 
 export default function Command() {
-  const [elements, setElements] = useState([(<List.Item id="loading" title={"loading..."} />)]);
+  const [elements, setElements] = useState([<List.Item id="loading" title={"loading..."} />]);
   if (!run) {
     search("", setElements);
     run = true;
@@ -32,22 +32,29 @@ export default function Command() {
 
   return (
     <List
-      onSearchTextChange={
-        (text) => {
-          search(text.split(" ").filter(text => !!text).join(","), setElements);
-        }
-      }
+      onSearchTextChange={(text) => {
+        search(
+          text
+            .split(" ")
+            .filter((text) => !!text)
+            .join(","),
+          setElements
+        );
+      }}
       children={elements}
     />
-  )
+  );
 }
 
 function createElements(content: string): ReactElement[] {
   const elements: ReactElement[] = [];
-  content.split("\n").filter(text => !!text).forEach((line) => {
-    elements.push(createElement(line));
-  })
-  return elements
+  content
+    .split("\n")
+    .filter((text) => !!text)
+    .forEach((line) => {
+      elements.push(createElement(line));
+    });
+  return elements;
 }
 
 function createElement(path: string): ReactElement {
@@ -75,9 +82,8 @@ function createElement(path: string): ReactElement {
         </ActionPanel>
       }
     />
-  )
+  );
 }
-
 
 function getProjectPath(): string {
   let path = preference.projectBasePath;
