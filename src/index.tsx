@@ -1,11 +1,10 @@
 import { ActionPanel, List, Action, environment, closeMainWindow, getPreferenceValues } from "@raycast/api";
 import { exec } from "child_process";
 import { useState, ReactElement } from "react";
-import { homedir } from "os";
 import open from "open";
 interface Preference {
-  projectBasePath?: string;
-  level?: number;
+  projectBasePath: string;
+  level: number;
 }
 
 const codeAppKey = "com.microsoft.VSCode";
@@ -17,7 +16,7 @@ const script = path + "/lsall.py";
 
 function search(text: string, setElements: any) {
   console.log(text);
-  exec(["python3", script, getProjectPath(), preference.level, 40, text].join(" "), (err, stdout, stderr) => {
+  exec(["python3", script, preference.projectBasePath, preference.level, 40, text].join(" "), (err, stdout, stderr) => {
     const element = createElements(stdout);
     setElements(element);
   });
@@ -83,12 +82,4 @@ function createElement(path: string): ReactElement {
       }
     />
   );
-}
-
-function getProjectPath(): string {
-  let path = preference.projectBasePath;
-  if (!path) {
-    path = homedir() + "Documents";
-  }
-  return path;
 }
