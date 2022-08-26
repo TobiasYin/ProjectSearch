@@ -3,7 +3,7 @@ import { exec } from "child_process";
 import { useState, ReactElement } from "react";
 import open from "open";
 import { addSelected, deleteSeletected } from "./cache";
-import { choose, realSearch } from "./util";
+import { choose, queryProcess, realSearch } from "./util";
 interface Preference {
   level?: number;
   remoteURI: string;
@@ -22,6 +22,7 @@ let setElement: any = null;
 let run = false;
 
 function search(text: string, setElements: any) {
+  text = queryProcess(text);
   realSearch(cacheKey, text, setElements, createElement, (reshandler: (arg0: string) => void) => {
     let path = preference.projectBasePath;
     path = path.replace("$", "\\$");

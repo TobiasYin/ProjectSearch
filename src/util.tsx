@@ -9,13 +9,13 @@ export function parseContent(content: string): string[] {
 export function createElements(content: string[], createor: any): ReactElement[] {
   return content.map(createor);
 }
-
-export function realSearch(cacheKey: string, text: string, setElements: any, creator: any, exec: any) {
-  text = text
+export function queryProcess(text: string): string {
+  return text
     .split(" ")
     .filter((text) => !!text)
     .join(",");
-
+}
+export function realSearch(cacheKey: string, text: string, setElements: any, creator: any, exec: any) {
   const selected = getSeletected(cacheKey, text);
   const element = createElements(selected, creator);
   if (selected.length > 5 && text == "") {

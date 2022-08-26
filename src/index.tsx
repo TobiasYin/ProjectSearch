@@ -3,7 +3,7 @@ import { exec } from "child_process";
 import { useState, ReactElement } from "react";
 import open from "open";
 import { addSelected, deleteSeletected } from "./cache";
-import { choose, realSearch } from "./util";
+import { choose, queryProcess, realSearch } from "./util";
 interface Preference {
   projectBasePath: string;
   level: number;
@@ -20,6 +20,7 @@ let curText = "";
 let setElement: any = null;
 
 function search(text: string, setElements: any) {
+  text = queryProcess(text);
   realSearch(cacheKey, text, setElements, createElement, (reshandler: (arg0: string) => void) => {
     exec(
       ["python3", script, preference.projectBasePath, preference.level, 40, text].join(" "),
