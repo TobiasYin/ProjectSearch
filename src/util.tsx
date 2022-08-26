@@ -1,18 +1,13 @@
 import { List } from "@raycast/api";
-import { useState, ReactElement } from "react";
+import { ReactElement } from "react";
 import { addSelected, getSeletected } from "./cache";
-export function parseContent(content: string): string[] {
-  const elements: string[] = content.split("\n").filter((text) => !!text);
 
-  return elements;
+export function parseContent(content: string): string[] {
+  return content.split("\n").filter((text) => !!text);
 }
 
 export function createElements(content: string[], createor: any): ReactElement[] {
-  const elements: ReactElement[] = [];
-  content.forEach((line) => {
-    elements.push(createor(line));
-  });
-  return elements;
+  return content.map(createor);
 }
 
 export function realSearch(cacheKey: string, text: string, setElements: any, creator: any, exec: any) {

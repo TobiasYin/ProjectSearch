@@ -2,7 +2,7 @@ import { ActionPanel, List, Action, environment, closeMainWindow, getPreferenceV
 import { exec } from "child_process";
 import { useState, ReactElement } from "react";
 import open from "open";
-import { addSelected } from "./cache";
+import { addSelected, deleteSeletected } from "./cache";
 import { choose, realSearch } from "./util";
 interface Preference {
   projectBasePath: string;
@@ -16,6 +16,8 @@ let run = false;
 const path = environment.assetsPath;
 const script = path + "/lsall.py";
 const cacheKey = "local";
+let curText = "";
+let setElement: any = null;
 
 function search(text: string, setElements: any) {
   realSearch(cacheKey, text, setElements, createElement, (reshandler: (arg0: string) => void) => {
@@ -35,9 +37,12 @@ export default function Command() {
     run = true;
   }
 
+  setElement = setElements;
+
   return (
     <List
       onSearchTextChange={(text) => {
+        curText = text;
         search(text, setElements);
       }}
       children={elements}
@@ -78,6 +83,17 @@ function createElement(path: string): ReactElement {
               }}
               icon={{ fileIcon: terminalPath }}
               shortcut={{ modifiers: ["cmd"], key: "t" }}
+            />
+          </ActionPanel.Section>
+          <ActionPanel.Section>
+            <Action
+              title="Delete In Cache"
+              key="delete"
+              onAction={() => {
+                deleteSeletected(cacheKey, path);
+                search(curText, setElement);
+              }}
+              shortcut={{ modifiers: ["cmd"], key: "d" }}
             />
           </ActionPanel.Section>
         </ActionPanel>

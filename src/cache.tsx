@@ -33,3 +33,7 @@ export function getSeletected(key: string, query: string): string[] {
     return all;
   });
 }
+
+export function deleteSeletected(key: string, selected: string) {
+  cache.set(key, JSON.stringify(getSeletected(key, "").filter((text) => text != selected)));
+}
