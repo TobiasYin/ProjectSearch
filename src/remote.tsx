@@ -2,6 +2,8 @@ import { ActionPanel, List, Action, environment, closeMainWindow, getPreferenceV
 import { exec } from "child_process";
 import { useState, ReactElement } from "react";
 import open from "open";
+import { addSelected } from "./cache";
+import { choose, realSearch } from "./util";
 interface Preference {
   level?: number;
   remoteURI: string;
@@ -14,25 +16,27 @@ const preference: Preference = getPreferenceValues();
 const path = environment.assetsPath;
 const script = path + "/lsall.py";
 const remoteScript = "/tmp/lsall.py";
+const cacheKey = "remote";
 
 let run = false;
 
 function search(text: string, setElements: any) {
-  let path = preference.projectBasePath;
-  path = path.replace("$", "\\$");
-  const cmd = ["ssh", preference.remoteURI, "python3", remoteScript, path, preference.level, 20, text].join(" ");
+  realSearch(cacheKey, text, setElements, createElement, (reshandler: (arg0: string) => void) => {
+    let path = preference.projectBasePath;
+    path = path.replace("$", "\\$");
+    const cmd = ["ssh", preference.remoteURI, "python3", remoteScript, path, preference.level, 20, text].join(" ");
 
-  exec(cmd, (err, stdout, stderr) => {
-    if (err != null) {
-      if (err.code == 2) {
-        sendScriptAndRetry(text, setElements);
-      } else {
-        setElements([createMessage(err.message)]);
+    exec(cmd, (err, stdout, stderr) => {
+      if (err != null) {
+        if (err.code == 2) {
+          sendScriptAndRetry(text, setElements);
+        } else {
+          setElements([createMessage(err.message)]);
+        }
+        return;
       }
-      return;
-    }
-    const element = createElements(stdout);
-    setElements(element);
+      reshandler(stdout);
+    });
   });
 }
 
@@ -61,28 +65,11 @@ export default function Command() {
   return (
     <List
       onSearchTextChange={(text) => {
-        search(
-          text
-            .split(" ")
-            .filter((text) => !!text)
-            .join(","),
-          setElements
-        );
+        search(text, setElements);
       }}
       children={elements}
     />
   );
-}
-
-function createElements(content: string): ReactElement[] {
-  const elements: ReactElement[] = [];
-  content
-    .split("\n")
-    .filter((text) => !!text)
-    .forEach((line) => {
-      elements.push(createElement(line));
-    });
-  return elements;
 }
 
 function createElement(path: string): ReactElement {
@@ -97,15 +84,17 @@ function createElement(path: string): ReactElement {
               title={`Open in Code (Remote)`}
               icon="command-icon.png"
               onAction={() => {
+                addSelected(cacheKey, path);
                 exec("code --remote ssh-remote+" + preference.remoteURI + " " + path);
                 closeMainWindow();
               }}
             />
-            <Action.CopyToClipboard title="Copy to clipboard" content={path} />
+            <Action.CopyToClipboard title="Copy to clipboard" content={path} onCopy={choose(cacheKey)} />
             <Action
               title="Open in Terminal"
               key="terminal"
               onAction={() => {
+                addSelected(cacheKey, path);
                 open("ssh://" + preference.remoteURI, { app: { name: terminalPath } });
                 exec(
                   `osascript -e 'tell application "iTerm" to tell current session of current window to write text "cd ${path}"'`
