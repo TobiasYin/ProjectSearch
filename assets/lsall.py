@@ -57,20 +57,23 @@ while len(queue) > 0 and len(res) < reslen:
         except:
             continue
 
+        relative_path = full_path[len(abs_dir)+1:]
+
         if query:
             for q in query:
-                if q not in full_path:
+                if q not in relative_path:
                     break
             else:
-                res.append(full_path)
+                res.append(relative_path)
                 if len(res) >= reslen:
                     break
             queue.append([full_path, l + 1])
         else:
-            res.append(full_path)
+            res.append(relative_path)
             if len(res) >= reslen:
                 break
             queue.append([full_path, l + 1])
 
+print(abs_dir)
 for r in res:
     print(r)
