@@ -37,3 +37,15 @@ export function getSeletected(key: string, query: string): string[] {
 export function deleteSeletected(key: string, selected: string) {
   cache.set(key, JSON.stringify(getSeletected(key, "").filter((text) => text != selected)));
 }
+
+export function clearSelection(key: string) {
+  cache.set(key, JSON.stringify([]));
+}
+
+export function geStorePath(key: string): string {
+  return cache.get(key + "_path") ?? "";
+}
+
+export function setPath(key: string, value: string) {
+  cache.set(key + "_path", value);
+}

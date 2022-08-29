@@ -1,9 +1,9 @@
 import { ActionPanel, List, Action, environment, closeMainWindow, getPreferenceValues } from "@raycast/api";
 import { exec } from "child_process";
-import { useState, ReactElement } from "react";
+import { ReactElement } from "react";
 import open from "open";
-import { addSelected, deleteSeletected } from "./cache";
-import { choose, getPath, queryProcess, realSearch } from "./util";
+import { addSelected } from "./cache";
+import { CopyToClipboard, DeleteInCache, GenCommand, getPath, getSetter, init, queryProcess, realSearch } from "./util";
 interface Preference {
   level?: number;
   remoteURI: string;
@@ -18,13 +18,10 @@ const path = environment.assetsPath;
 const script = path + "/lsall.py";
 const remoteScript = "/tmp/lsall.py";
 const cacheKey = "remote";
-let curText = "";
-let setElement: any = null;
-let run = false;
 
-function search(text: string, setElements: any) {
+function search(text: string) {
   text = queryProcess(text);
-  realSearch(cacheKey, text, setElements, createElement, (reshandler: (arg0: string) => void) => {
+  realSearch(text, createElement, (reshandler: (arg0: string) => void) => {
     let path = preference.projectBasePath;
     path = path.replace("$", "\\$");
     const cmd = ["ssh", preference.remoteURI, "python3", remoteScript, path, preference.level, 20, text].join(" ");
@@ -32,9 +29,9 @@ function search(text: string, setElements: any) {
     exec(cmd, (err, stdout, stderr) => {
       if (err != null) {
         if (err.code == 2) {
-          sendScriptAndRetry(text, setElements);
+          sendScriptAndRetry(text);
         } else {
-          setElements([createMessage(err.message)]);
+          getSetter()([createMessage(err.message)]);
         }
         return;
       }
@@ -42,40 +39,25 @@ function search(text: string, setElements: any) {
     });
   });
 }
+init(cacheKey, search);
 
 function createMessage(message: string): ReactElement {
   return <List.Item key="message" title={message} />;
 }
 
-function sendScriptAndRetry(text: string, setElements: any) {
-  setElements([createMessage("Waiting, the script not installed in remote, Installing...")]);
+function sendScriptAndRetry(text: string) {
+  getSetter()([createMessage("Waiting, the script not installed in remote, Installing...")]);
   exec(["scp", script, preference.remoteURI + ":" + remoteScript].join(" "), (err, stdout, stderr) => {
     if (err != null) {
-      setElements([createMessage(err.message)]);
+      getSetter()([createMessage(err.message)]);
       return;
     }
-    search(text, setElements);
+    search(text);
   });
 }
 
 export default function Command() {
-  const [elements, setElements] = useState([<List.Item key="loading" title={"loading..."} />]);
-  if (!run) {
-    search("", setElements);
-    run = true;
-  }
-
-  setElement = setElements;
-
-  return (
-    <List
-      onSearchTextChange={(text) => {
-        search(text, setElements);
-        curText = text;
-      }}
-      children={elements}
-    />
-  );
+  return GenCommand();
 }
 
 function createElement(path: string, recentOpen: boolean): ReactElement {
@@ -99,13 +81,7 @@ function createElement(path: string, recentOpen: boolean): ReactElement {
                 closeMainWindow();
               }}
             />
-            <Action.CopyToClipboard
-              title="Copy to clipboard"
-              content={realPath}
-              onCopy={() => {
-                choose(cacheKey)(path);
-              }}
-            />
+            {CopyToClipboard(path)}
             <Action
               title="Open in Terminal"
               key="terminal"
@@ -121,17 +97,7 @@ function createElement(path: string, recentOpen: boolean): ReactElement {
               shortcut={{ modifiers: ["cmd"], key: "t" }}
             />
           </ActionPanel.Section>
-          <ActionPanel.Section>
-            <Action
-              title="Delete In Cache"
-              key="delete"
-              onAction={() => {
-                deleteSeletected(cacheKey, path);
-                search(curText, setElement);
-              }}
-              shortcut={{ modifiers: ["cmd"], key: "d" }}
-            />
-          </ActionPanel.Section>
+          {DeleteInCache(path)}
         </ActionPanel>
       }
     />
