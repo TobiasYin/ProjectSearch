@@ -32,7 +32,7 @@ function search(text: string, setElements: any) {
 }
 
 export default function Command() {
-  const [elements, setElements] = useState([<List.Item id="loading" title={"loading..."} />]);
+  const [elements, setElements] = useState([<List.Item key="loading" title={"loading..."} />]);
   if (!run) {
     search("", setElements);
     run = true;
@@ -54,7 +54,7 @@ export default function Command() {
 function createElement(path: string): ReactElement {
   return (
     <List.Item
-      id={path}
+      key={path}
       title={path}
       actions={
         <ActionPanel>

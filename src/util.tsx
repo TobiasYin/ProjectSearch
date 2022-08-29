@@ -22,7 +22,7 @@ export function realSearch(cacheKey: string, text: string, setElements: any, cre
     setElements(element);
     return;
   }
-  element.push(<List.Item id="loading" title={"loading..."} />);
+  element.push(<List.Item key="loading" title={"loading..."} />);
   setElements(element);
   exec((content: string) => {
     const res = parseContent(content);
