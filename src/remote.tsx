@@ -3,7 +3,7 @@ import { exec } from "child_process";
 import { useState, ReactElement } from "react";
 import open from "open";
 import { addSelected, deleteSeletected } from "./cache";
-import { choose, realSearch } from "./util";
+import { choose, queryProcess, realSearch } from "./util";
 interface Preference {
   level?: number;
   remoteURI: string;
@@ -22,6 +22,7 @@ let setElement: any = null;
 let run = false;
 
 function search(text: string, setElements: any) {
+  text = queryProcess(text);
   realSearch(cacheKey, text, setElements, createElement, (reshandler: (arg0: string) => void) => {
     let path = preference.projectBasePath;
     path = path.replace("$", "\\$");
@@ -42,7 +43,7 @@ function search(text: string, setElements: any) {
 }
 
 function createMessage(message: string): ReactElement {
-  return <List.Item title={message} />;
+  return <List.Item key="message" title={message} />;
 }
 
 function sendScriptAndRetry(text: string, setElements: any) {
@@ -57,7 +58,7 @@ function sendScriptAndRetry(text: string, setElements: any) {
 }
 
 export default function Command() {
-  const [elements, setElements] = useState([<List.Item id="loading" title={"loading..."} />]);
+  const [elements, setElements] = useState([<List.Item key="loading" title={"loading..."} />]);
   if (!run) {
     search("", setElements);
     run = true;
@@ -79,7 +80,7 @@ export default function Command() {
 function createElement(path: string): ReactElement {
   return (
     <List.Item
-      id={path}
+      key={path}
       title={path}
       actions={
         <ActionPanel>
