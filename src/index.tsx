@@ -58,6 +58,7 @@ function createElement(path: string, recentOpen: boolean): ReactElement {
   return (
     <List.Item
       key={realPath}
+      id={realPath}
       title={showPath}
       subtitle={recentOpen ? "recent" : ""}
       actions={
