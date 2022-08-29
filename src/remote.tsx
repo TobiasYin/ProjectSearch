@@ -3,11 +3,12 @@ import { exec } from "child_process";
 import { useState, ReactElement } from "react";
 import open from "open";
 import { addSelected, deleteSeletected } from "./cache";
-import { choose, queryProcess, realSearch } from "./util";
+import { choose, getPath, queryProcess, realSearch } from "./util";
 interface Preference {
   level?: number;
   remoteURI: string;
   projectBasePath: string;
+  showFullPath: boolean;
 }
 
 const terminalPath = "/Applications/iTerm.app";
@@ -77,11 +78,14 @@ export default function Command() {
   );
 }
 
-function createElement(path: string): ReactElement {
+function createElement(path: string, recentOpen: boolean): ReactElement {
+  const realPath = getPath(path);
+  const showPath = preference.showFullPath ? realPath : path;
   return (
     <List.Item
-      key={path}
-      title={path}
+      key={realPath}
+      title={showPath}
+      subtitle={recentOpen ? "recent" : ""}
       actions={
         <ActionPanel>
           <ActionPanel.Section>
@@ -90,11 +94,17 @@ function createElement(path: string): ReactElement {
               icon="command-icon.png"
               onAction={() => {
                 addSelected(cacheKey, path);
-                exec("code --remote ssh-remote+" + preference.remoteURI + " " + path);
+                exec("code --remote ssh-remote+" + preference.remoteURI + " " + realPath);
                 closeMainWindow();
               }}
             />
-            <Action.CopyToClipboard title="Copy to clipboard" content={path} onCopy={choose(cacheKey)} />
+            <Action.CopyToClipboard
+              title="Copy to clipboard"
+              content={realPath}
+              onCopy={() => {
+                choose(cacheKey)(path);
+              }}
+            />
             <Action
               title="Open in Terminal"
               key="terminal"
@@ -102,7 +112,7 @@ function createElement(path: string): ReactElement {
                 addSelected(cacheKey, path);
                 open("ssh://" + preference.remoteURI, { app: { name: terminalPath } });
                 exec(
-                  `osascript -e 'tell application "iTerm" to tell current session of current window to write text "cd ${path}"'`
+                  `osascript -e 'tell application "iTerm" to tell current session of current window to write text "cd ${realPath}"'`
                 );
                 closeMainWindow();
               }}

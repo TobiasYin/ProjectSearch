@@ -48,7 +48,6 @@
           "title": "Path of the 'Remote Projects Location'",
           "description": "Path of Remote Projects, default is $HOME/Documents"
         }
-
       ]
     }
   ],
@@ -60,6 +59,14 @@
       "default": "5",
       "title": "seach level of Path",
       "description": "seach level of Path"
+    },
+    {
+      "name": "showFullPath",
+      "type": "checkbox",
+      "required": false,
+      "default": false,
+      "title": "show full path",
+      "description": "default will show relative path of project."
     }
   ],
   "dependencies": {

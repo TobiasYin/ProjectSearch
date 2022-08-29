@@ -3,10 +3,11 @@ import { exec } from "child_process";
 import { useState, ReactElement } from "react";
 import open from "open";
 import { addSelected, deleteSeletected } from "./cache";
-import { choose, queryProcess, realSearch } from "./util";
+import { choose, getPath, queryProcess, realSearch } from "./util";
 interface Preference {
   projectBasePath: string;
   level: number;
+  showFullPath: boolean;
 }
 
 const codeAppKey = "com.microsoft.VSCode";
@@ -51,25 +52,32 @@ export default function Command() {
   );
 }
 
-function createElement(path: string): ReactElement {
+function createElement(path: string, recentOpen: boolean): ReactElement {
+  const realPath = getPath(path);
+  const showPath = preference.showFullPath ? realPath : path;
   return (
     <List.Item
-      key={path}
-      title={path}
+      key={realPath}
+      title={showPath}
+      subtitle={recentOpen ? "recent" : ""}
       actions={
         <ActionPanel>
           <ActionPanel.Section>
             <Action.Open
               title="Open in Code"
               icon="command-icon.png"
-              target={path}
+              target={realPath}
               application={codeAppKey}
-              onOpen={choose(cacheKey)}
+              onOpen={() => choose(cacheKey)(path)}
             />
-            <Action.CopyToClipboard title="Copy to clipboard" content={path} onCopy={choose(cacheKey)} />
+            <Action.CopyToClipboard
+              title="Copy to clipboard"
+              content={realPath}
+              onCopy={() => choose(cacheKey)(path)}
+            />
             <Action.ShowInFinder
               title="Open in Finder"
-              path={path}
+              path={realPath}
               onShow={() => {
                 choose(cacheKey)(path);
               }}
@@ -79,7 +87,7 @@ function createElement(path: string): ReactElement {
               key="terminal"
               onAction={() => {
                 addSelected(cacheKey, path);
-                open(path, { app: { name: terminalPath, arguments: [path] } });
+                open(realPath, { app: { name: terminalPath, arguments: [realPath] } });
                 closeMainWindow();
               }}
               icon={{ fileIcon: terminalPath }}

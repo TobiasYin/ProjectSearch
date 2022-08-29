@@ -2,22 +2,30 @@ import { List } from "@raycast/api";
 import { ReactElement } from "react";
 import { addSelected, getSeletected } from "./cache";
 
+let baseDir = "";
+
+export function getPath(path: string) {
+  return baseDir + "/" + path;
+}
+
 export function parseContent(content: string): string[] {
   return content.split("\n").filter((text) => !!text);
 }
 
-export function createElements(content: string[], createor: any): ReactElement[] {
-  return content.map(createor);
+export function createElements(content: string[], createor: any, recent: boolean): ReactElement[] {
+  return content.map((item) => createor(item, recent));
 }
+
 export function queryProcess(text: string): string {
   return text
     .split(" ")
     .filter((text) => !!text)
     .join(",");
 }
+
 export function realSearch(cacheKey: string, text: string, setElements: any, creator: any, exec: any) {
   const selected = getSeletected(cacheKey, text);
-  const element = createElements(selected, creator);
+  const element = createElements(selected, creator, true);
   if (selected.length > 5 && text == "") {
     setElements(element);
     return;
@@ -25,21 +33,19 @@ export function realSearch(cacheKey: string, text: string, setElements: any, cre
   element.push(<List.Item key="loading" title={"loading..."} />);
   setElements(element);
   exec((content: string) => {
-    const res = parseContent(content);
-    const merged = mergeList(selected, res);
-    const element = createElements(merged, creator);
+    let res = parseContent(content);
+    baseDir = res[0];
+    res = res.slice(1);
+    const filtered = filterRes(selected, res);
+    let element = createElements(selected, creator, true);
+    element = element.concat(createElements(filtered, creator, false));
     setElements(element);
   });
 }
 
-export function mergeList(list: string[], newList: string[]): string[] {
+export function filterRes(list: string[], newList: string[]): string[] {
   const s = new Set(list);
-  newList.forEach((item) => {
-    if (!s.has(item)) {
-      list.push(item);
-    }
-  });
-  return list;
+  return newList.filter((item) => !s.has(item));
 }
 
 export function choose(cacheKey: string): (arg: string | number) => void {
