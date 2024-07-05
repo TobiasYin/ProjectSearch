@@ -54,6 +54,16 @@ function createElement(path: string, recentOpen: boolean): ReactElement {
               application={codeAppKey}
               onOpen={() => addSelected(cacheKey, path)}
             />
+            <Action
+              title={`Open in Goland`}
+              key="goland"
+              icon="command-icon.png"
+              onAction={() => {
+                addSelected(cacheKey, path);
+                exec("/Users/bytedance/tools/goland " + realPath);
+                closeMainWindow();
+              }}
+            />
             {CopyToClipboard(path)}
             <Action.ShowInFinder
               title="Open in Finder"
