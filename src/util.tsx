@@ -37,6 +37,7 @@ export function createElements(content: string[], createor: any, recent: boolean
 
 export function queryProcess(text: string): string {
   return text
+    .replace(/[()]/g, "")
     .split(" ")
     .filter((text) => !!text)
     .join(",");

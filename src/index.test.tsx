@@ -96,7 +96,6 @@ describe('search', () => {
   });
 
   it('应该处理执行错误', () => {
-    const mockCreateElement = jest.fn();
     const mockText = 'test search';
     const mockProcessedText = 'test,search';
     const mockError = new Error('Command failed');
@@ -116,5 +115,50 @@ describe('search', () => {
     
     // 即使出错，也应该调用 reshandler，但输出为空字符串
     expect(mockResHandler).toHaveBeenCalledWith('');
+  });
+
+  it('应该正确处理包含括号的文本', () => {
+    const mockText = 'test (search) with (parentheses)';
+    const expectedProcessedText = 'test,(search),with,(parentheses)';
+    
+    // 使用实际的 queryProcess 函数来测试
+    mockedQueryProcess.mockImplementation((text: string) => {
+      return text.split(' ').filter((t) => !!t).join(',');
+    });
+    mockedExec.mockImplementation((command: string, callback: any) => {
+      // 验证命令是否正确转义了特殊字符
+      expect(command).toContain('"test,(search),with,(parentheses)"');
+      expect(command).toMatch(/python3.*".*lsall.py.*".*".*test,\(search\),with,\(parentheses\).*"/);
+      callback(null, 'mock/output/with/parentheses', '');
+      return {} as any;
+    });
+
+    search(mockText);
+
+    expect(mockedQueryProcess).toHaveBeenCalledWith(mockText);
+    expect(mockedRealSearch).toHaveBeenCalledWith(
+      expectedProcessedText,
+      expect.any(Function),
+      expect.any(Function)
+    );
+  });
+
+  it('应该正确处理特殊字符', () => {
+    const mockText = 'project (test) [brackets] {braces}';
+    const expectedProcessedText = 'project,(test),[brackets],{braces}';
+    
+    mockedQueryProcess.mockImplementation((text: string) => {
+      return text.split(' ').filter((t) => !!t).join(',');
+    });
+    mockedExec.mockImplementation((command: string, callback: any) => {
+      expect(command).toContain('"project,(test),[brackets],{braces}"');
+      expect(command).toMatch(/python3.*".*lsall.py.*".*".*project,\(test\),\[brackets\],\{braces\}.*"/);
+      callback(null, 'mock/output/special/chars', '');
+      return {} as any;
+    });
+
+    search(mockText);
+
+    expect(mockedQueryProcess).toHaveBeenCalledWith(mockText);
   });
 });

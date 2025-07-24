@@ -20,12 +20,25 @@ const cacheKey = "local";
 export function search(text: string) {
   text = queryProcess(text);
   realSearch(text, createElement, (reshandler: (arg0: string) => void) => {
-    exec(
-      ["python3", script, preference.projectBasePath, preference.level, 40, text].join(" "),
-      (err, stdout, stderr) => {
+    // 转义特殊字符以防止 shell 注入
+    const escapedText = text.replace(/'/g, "'\"'\"'");
+    const command = [
+      "python3",
+      `"${script}"`,
+      `"${preference.projectBasePath}"`,
+      preference.level,
+      40,
+      `"${escapedText}"`
+    ].join(" ");
+    
+    exec(command, (err, stdout, stderr) => {
+      if (err) {
+        console.error('Search error:', err);
+        reshandler('');
+      } else {
         reshandler(stdout);
       }
-    );
+    });
   });
 }
 

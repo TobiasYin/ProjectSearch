@@ -35,3 +35,6 @@ jest.mock('open', () => jest.fn());
 beforeEach(() => {
   jest.clearAllMocks();
 });
+
+// 添加空导出使其成为模块
+export {};

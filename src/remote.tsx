@@ -24,7 +24,19 @@ function search(text: string) {
   realSearch(text, createElement, (reshandler: (arg0: string) => void) => {
     let path = preference.projectBasePath;
     path = path.replace("$", "\\$");
-    const cmd = ["ssh", preference.remoteURI, "python3", remoteScript, path, preference.level, 20, text].join(" ");
+    // 转义特殊字符以防止 shell 注入
+    const escapedText = text.replace(/'/g, "'\"'\"'");
+    const escapedPath = path.replace(/'/g, "'\"'\"'");
+    const cmd = [
+      "ssh",
+      preference.remoteURI,
+      "python3",
+      `"${remoteScript}"`,
+      `"${escapedPath}"`,
+      preference.level,
+      20,
+      `"${escapedText}"`
+    ].join(" ");
 
     exec(cmd, (err, stdout, stderr) => {
       if (err != null) {
@@ -47,7 +59,15 @@ function createMessage(message: string): ReactElement {
 
 function sendScriptAndRetry(text: string) {
   getSetter()([createMessage("Waiting, the script not installed in remote, Installing...")]);
-  exec(["scp", script, preference.remoteURI + ":" + remoteScript].join(" "), (err, stdout, stderr) => {
+  // 转义特殊字符以防止 shell 注入
+  const escapedRemoteScript = remoteScript.replace(/'/g, "'\"'\"'");
+  const cmd = [
+    "scp",
+    `"${script}"`,
+    `"${preference.remoteURI}:${escapedRemoteScript}"`
+  ].join(" ");
+  
+  exec(cmd, (err, stdout, stderr) => {
     if (err != null) {
       getSetter()([createMessage(err.message)]);
       return;
@@ -77,7 +97,8 @@ function createElement(path: string, recentOpen: boolean): ReactElement {
               icon="command-icon.png"
               onAction={() => {
                 addSelected(cacheKey, path);
-                exec("code --remote ssh-remote+" + preference.remoteURI + " " + realPath);
+                const escapedRealPath = realPath.replace(/'/g, "'\"'\"'");
+                exec(`code --remote ssh-remote+"${preference.remoteURI}" "${escapedRealPath}"`);
                 closeMainWindow();
               }}
             />
@@ -88,9 +109,7 @@ function createElement(path: string, recentOpen: boolean): ReactElement {
               onAction={() => {
                 addSelected(cacheKey, path);
                 open("ssh://" + preference.remoteURI, { app: { name: terminalPath } });
-                exec(
-                  `osascript -e 'tell application "iTerm" to tell current session of current window to write text "cd ${realPath}"'`
-                );
+                exec('osascript -e \'tell application "iTerm" to tell current session of current window to write text "cd " & quoted form of "' + realPath + '"\'');
                 closeMainWindow();
               }}
               icon={{ fileIcon: terminalPath }}
