@@ -47,13 +47,6 @@ function createElement(path: string, recentOpen: boolean): ReactElement {
       actions={
         <ActionPanel>
           <ActionPanel.Section>
-            <Action.Open
-              title="Open in Code"
-              icon="command-icon.png"
-              target={realPath}
-              application={codeAppKey}
-              onOpen={() => addSelected(cacheKey, path)}
-            />
             <Action
               title={`Open in Goland`}
               key="goland"
@@ -63,6 +56,13 @@ function createElement(path: string, recentOpen: boolean): ReactElement {
                 exec("/Users/bytedance/tools/goland " + realPath);
                 closeMainWindow();
               }}
+            />
+            <Action.Open
+              title="Open in Code"
+              icon="command-icon.png"
+              target={realPath}
+              application={codeAppKey}
+              onOpen={() => addSelected(cacheKey, path)}
             />
             {CopyToClipboard(path)}
             <Action.ShowInFinder
