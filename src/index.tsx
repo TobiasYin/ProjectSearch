@@ -17,7 +17,7 @@ const path = environment.assetsPath;
 const script = path + "/lsall.py";
 const cacheKey = "local";
 
-function search(text: string) {
+export function search(text: string) {
   text = queryProcess(text);
   realSearch(text, createElement, (reshandler: (arg0: string) => void) => {
     exec(
@@ -53,16 +53,19 @@ function createElement(path: string, recentOpen: boolean): ReactElement {
               icon="command-icon.png"
               onAction={() => {
                 addSelected(cacheKey, path);
-                exec("/Users/bytedance/tools/goland " + realPath);
+                exec("zsh -c '/Users/bytedance/tools/goland " + realPath + "'");
                 closeMainWindow();
               }}
             />
-            <Action.Open
+            <Action
               title="Open in Code"
               icon="command-icon.png"
-              target={realPath}
-              application={codeAppKey}
-              onOpen={() => addSelected(cacheKey, path)}
+              key="code"
+              onAction={() => {
+                addSelected(cacheKey, path);
+                exec("zsh -c '/usr/local/bin/code " + realPath + "'");
+                closeMainWindow();
+              }}
             />
             {CopyToClipboard(path)}
             <Action.ShowInFinder
