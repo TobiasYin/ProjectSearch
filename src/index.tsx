@@ -8,14 +8,21 @@ interface Preference {
   projectBasePath: string;
   level: number;
   showFullPath: boolean;
+  localOpenCmd: string;
+  localOpenCmdSecondary: string;
 }
 
-const codeAppKey = "com.microsoft.VSCode";
 const terminalPath = "/Applications/iTerm.app";
 const preference: Preference = getPreferenceValues();
 const path = environment.assetsPath;
 const script = path + "/lsall.py";
 const cacheKey = "local";
+
+function runShellCommand(command: string, path: string) {
+  const safePath = path.replace(/'/g, "'\\''");
+  const fullCommand = `zsh -l -c '${command} "${safePath}"'`;
+  exec(fullCommand);
+}
 
 function search(text: string) {
   text = queryProcess(text);
@@ -38,6 +45,9 @@ export default function Command() {
 function createElement(path: string, recentOpen: boolean): ReactElement {
   const realPath = getPath(path);
   const showPath = preference.showFullPath ? realPath : path;
+  const primaryCmd = preference.localOpenCmd || "code";
+  const secondaryCmd = preference.localOpenCmdSecondary;
+
   return (
     <List.Item
       key={realPath}
@@ -48,22 +58,27 @@ function createElement(path: string, recentOpen: boolean): ReactElement {
         <ActionPanel>
           <ActionPanel.Section>
             <Action
-              title={`Open in Goland`}
-              key="goland"
+              title={`Open in ${primaryCmd}`}
               icon="command-icon.png"
               onAction={() => {
                 addSelected(cacheKey, path);
-                exec("/Users/bytedance/tools/goland " + realPath);
+                runShellCommand(primaryCmd, realPath);
                 closeMainWindow();
               }}
             />
-            <Action.Open
-              title="Open in Code"
-              icon="command-icon.png"
-              target={realPath}
-              application={codeAppKey}
-              onOpen={() => addSelected(cacheKey, path)}
-            />
+            {secondaryCmd && (
+              <Action
+                title={`Open in ${secondaryCmd}`}
+                key="secondary"
+                icon="command-icon.png"
+                shortcut={{ modifiers: ["cmd"], key: "enter" }}
+                onAction={() => {
+                  addSelected(cacheKey, path);
+                  runShellCommand(secondaryCmd, realPath);
+                  closeMainWindow();
+                }}
+              />
+            )}
             {CopyToClipboard(path)}
             <Action.ShowInFinder
               title="Open in Finder"

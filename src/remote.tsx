@@ -9,6 +9,9 @@ interface Preference {
   remoteURI: string;
   projectBasePath: string;
   showFullPath: boolean;
+  remoteOpenCmd: string;
+  remoteOpenCmdSecondary: string;
+  prehook: string;
 }
 
 const terminalPath = "/Applications/iTerm.app";
@@ -19,12 +22,20 @@ const script = path + "/lsall.py";
 const remoteScript = "/tmp/lsall.py";
 const cacheKey = "remote";
 
+function getCommandWithPrehook(cmd: string): string {
+  if (preference.prehook) {
+    return `${preference.prehook} > /dev/null && ${cmd}`;
+  }
+  return cmd;
+}
+
 function search(text: string) {
   text = queryProcess(text);
   realSearch(text, createElement, (reshandler: (arg0: string) => void) => {
     let path = preference.projectBasePath;
     path = path.replace("$", "\\$");
-    const cmd = ["ssh", preference.remoteURI, "python3", remoteScript, path, preference.level, 20, text].join(" ");
+    let cmd = ["ssh", preference.remoteURI, "python3", remoteScript, path, preference.level, 20, text].join(" ");
+    cmd = getCommandWithPrehook(cmd);
 
     exec(cmd, (err, stdout, stderr) => {
       if (err != null) {
@@ -47,7 +58,8 @@ function createMessage(message: string): ReactElement {
 
 function sendScriptAndRetry(text: string) {
   getSetter()([createMessage("Waiting, the script not installed in remote, Installing...")]);
-  exec(["scp", script, preference.remoteURI + ":" + remoteScript].join(" "), (err, stdout, stderr) => {
+  const cmd = getCommandWithPrehook(["scp", script, preference.remoteURI + ":" + remoteScript].join(" "));
+  exec(cmd, (err, stdout, stderr) => {
     if (err != null) {
       getSetter()([createMessage(err.message)]);
       return;
@@ -63,6 +75,9 @@ export default function Command() {
 function createElement(path: string, recentOpen: boolean): ReactElement {
   const realPath = getPath(path);
   const showPath = preference.showFullPath ? realPath : path;
+  const primaryCmd = preference.remoteOpenCmd || "code";
+  const secondaryCmd = preference.remoteOpenCmdSecondary;
+
   return (
     <List.Item
       key={realPath}
@@ -73,24 +88,55 @@ function createElement(path: string, recentOpen: boolean): ReactElement {
         <ActionPanel>
           <ActionPanel.Section>
             <Action
-              title={`Open in Code (Remote)`}
+              title={`Open in ${primaryCmd} (Remote)`}
               icon="command-icon.png"
               onAction={() => {
                 addSelected(cacheKey, path);
-                exec("code --remote ssh-remote+" + preference.remoteURI + " " + realPath);
+                const cmd = getCommandWithPrehook(
+                  `${primaryCmd} --remote ssh-remote+${preference.remoteURI} "${realPath}"`
+                );
+                exec(cmd);
                 closeMainWindow();
               }}
             />
+            {secondaryCmd && (
+              <Action
+                title={`Open in ${secondaryCmd} (Remote)`}
+                icon="command-icon.png"
+                shortcut={{ modifiers: ["cmd"], key: "enter" }}
+                onAction={() => {
+                  addSelected(cacheKey, path);
+                  const cmd = getCommandWithPrehook(
+                    `${secondaryCmd} --remote ssh-remote+${preference.remoteURI} "${realPath}"`
+                  );
+                  exec(cmd);
+                  closeMainWindow();
+                }}
+              />
+            )}
             {CopyToClipboard(path)}
             <Action
               title="Open in Terminal"
               key="terminal"
               onAction={() => {
                 addSelected(cacheKey, path);
-                open("ssh://" + preference.remoteURI, { app: { name: terminalPath } });
-                exec(
-                  `osascript -e 'tell application "iTerm" to tell current session of current window to write text "cd ${realPath}"'`
-                );
+                const openTerminal = () => {
+                  open("ssh://" + preference.remoteURI, { app: { name: terminalPath } });
+                  exec(
+                    `osascript -e 'tell application "iTerm" to tell current session of current window to write text "cd ${realPath}"'`
+                  );
+                };
+
+                if (preference.prehook) {
+                  exec(preference.prehook, (err) => {
+                    if (err) {
+                      console.error("Prehook failed:", err);
+                    }
+                    openTerminal();
+                  });
+                } else {
+                  openTerminal();
+                }
                 closeMainWindow();
               }}
               icon={{ fileIcon: terminalPath }}

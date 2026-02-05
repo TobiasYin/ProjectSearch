@@ -23,6 +23,22 @@
           "default": "$HOME/Documents",
           "title": "Path of the 'Projects Location'",
           "description": "Path of Projects, default is $HOME/Documents"
+        },
+        {
+          "name": "localOpenCmd",
+          "type": "textfield",
+          "required": false,
+          "default": "code",
+          "title": "Primary Open Command",
+          "description": "Command to open project (Enter). Default: code. Executes: cmd path"
+        },
+        {
+          "name": "localOpenCmdSecondary",
+          "type": "textfield",
+          "required": false,
+          "default": "",
+          "title": "Secondary Open Command",
+          "description": "Command to open project (Cmd+Enter). Executes: cmd path"
         }
       ]
     },
@@ -47,6 +63,30 @@
           "default": "$HOME/Documents",
           "title": "Path of the 'Remote Projects Location'",
           "description": "Path of Remote Projects, default is $HOME/Documents"
+        },
+        {
+          "name": "remoteOpenCmd",
+          "type": "textfield",
+          "required": false,
+          "default": "code",
+          "title": "Primary Open Command",
+          "description": "Command to open remote project (Enter). Default: code. Executes: cmd --remote ssh-remote+uri path"
+        },
+        {
+          "name": "remoteOpenCmdSecondary",
+          "type": "textfield",
+          "required": false,
+          "default": "",
+          "title": "Secondary Open Command",
+          "description": "Command to open remote project (Cmd+Enter)."
+        },
+        {
+          "name": "prehook",
+          "type": "textfield",
+          "required": false,
+          "default": "",
+          "title": "Pre-execution Hook",
+          "description": "Command to run before SSH/Remote operations (e.g. for auth)"
         }
       ]
     }
